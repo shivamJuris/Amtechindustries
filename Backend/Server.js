@@ -4,6 +4,7 @@ import cors from 'cors';
 import connectDb from "./Config/Mongodb.js";
 import connectCloudinary from "./Config/cloudinary.js";
 import userRouter from "./routes/userRoute.js";
+import productRouter from "./routes/productRoute.js";
 
 //app config
 const app = express();
@@ -16,7 +17,8 @@ app.use(cors());
 app.use(express.json())
 
 //Api endPoints
-app.use('/api/user', userRouter)
+app.use('/api/user', userRouter);
+app.use('/api/product', productRouter)
 app.get('/' , (req,res)=>{
     res.send("Api Conncted")
 })

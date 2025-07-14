@@ -10,6 +10,24 @@ const createToken = (id)=>{
 
 //Route for user login
 const loginUser = async (req, res)=>{
+    try {
+        const {email, password}=req.body;
+        const user = await userModel.findOne({email});
+        if(!user){
+            res.json({msg:"User does'nt Exist", success:false})
+        }
+        const isMatched = await bcrypt.compare(password, user.password);
+        if(isMatched){
+            const token = createToken(user._id)
+            res.json({success:true, token})
+        }else{
+            res,json({success:false, msg:"Invalid Credentials"})
+        }
+    } catch (error) {
+        console.log(error)
+            res.json({success:false, msg:"Invalid"})
+
+    }
 
 }
 
@@ -49,7 +67,18 @@ const registerUser = async (req, res)=>{
 
 //Admin Login route
 const adminLogin = async (req, res)=>{
-
+    try {
+        const {email, password} = req.body
+        if(email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD){
+            const token = jwt.sign(email+password,process.env.JWT_SECRET);
+            res.json({success:true, token})
+        }else{
+            res.json({succees:false, message:"invalid credentials"})
+        }
+    } catch (error) {
+         console.log(error)
+        res.json({success:false, msg:"error.msg"})
+    }
 }
 
 export {loginUser, registerUser, adminLogin}
