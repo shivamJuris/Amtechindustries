@@ -1,17 +1,19 @@
 import { createContext, useEffect, useState } from "react";
-import { products } from "../assets/assets";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export const ShopContext = createContext();
+
 const ShopContextProvider = (props) => {
   const currency = "₹";
   const delivery_fee = 10;
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
-
   const [cartItems, setCartItems] = useState({});
+  const [products, setProducts] = useState([]);
   const navigate = useNavigate();
 
   const addToCart = async (itemId, size) => {
@@ -29,8 +31,8 @@ const ShopContextProvider = (props) => {
         CartData[itemId][size] = 1;
       }
     } else {
-      CartData[itemId] = {}; // ✅ create object for sizes
-      CartData[itemId][size] = 1; // ✅ add the first size count
+      CartData[itemId] = {};
+      CartData[itemId][size] = 1;
     }
 
     setCartItems(CartData);
@@ -40,13 +42,8 @@ const ShopContextProvider = (props) => {
     let totalCount = 0;
     for (const itemId in cartItems) {
       for (const size in cartItems[itemId]) {
-        try {
-          if (cartItems[itemId][size] > 0) {
-            totalCount += cartItems[itemId][size];
-          }
-        } catch (error) {
-          // .error(error);
-          toast.error(error);
+        if (cartItems[itemId][size] > 0) {
+          totalCount += cartItems[itemId][size];
         }
       }
     }
@@ -60,24 +57,45 @@ const ShopContextProvider = (props) => {
   };
 
   const getCartAmount = () => {
-  let totalAmount = 0;
+    let totalAmount = 0;
 
-  for (const itemId in cartItems) {
-    const itemInfo = products.find((product) => product._id === itemId);
+    for (const itemId in cartItems) {
+      const itemInfo = products.find((product) => product._id === itemId);
+      if (!itemInfo) continue;
 
-    if (!itemInfo) continue; // Agar product milta hi nahi toh skip
-
-    for (const size in cartItems[itemId]) {
-      const quantity = cartItems[itemId][size];
-      if (quantity > 0) {
-        totalAmount += itemInfo.price * quantity;
+      for (const size in cartItems[itemId]) {
+        const quantity = cartItems[itemId][size];
+        if (quantity > 0) {
+          totalAmount += itemInfo.price * quantity;
+        }
       }
     }
-  }
 
-  return totalAmount;
-};
+    return totalAmount;
+  };
 
+  // ✅ MOVE getProductsData INSIDE COMPONENT
+  const getProductsData = async () => {
+    try {
+      const response = await axios.get(backendUrl + '/api/product/list');
+      console.log("Fetched products:", response.data);
+
+      if (response.data.success) {
+        setProducts(response.data.products);
+      } else {
+        toast.error(response.data.message || "Product list fetch failed");
+      }
+    } catch (error) {
+      console.error("Product fetch error:", error.message);
+      toast.error("Something went wrong while fetching products");
+    }
+  };
+
+  // ✅ useEffect must be inside component
+  useEffect(() => {
+
+    getProductsData();
+  }, []);
 
   const value = {
     products,
@@ -92,11 +110,14 @@ const ShopContextProvider = (props) => {
     getCartCount,
     updateQuantity,
     getCartAmount,
-    navigate
+    navigate,
+    backendUrl,
   };
 
   return (
-    <ShopContext.Provider value={value}>{props.children}</ShopContext.Provider>
+    <ShopContext.Provider value={value}>
+      {props.children}
+    </ShopContext.Provider>
   );
 };
 

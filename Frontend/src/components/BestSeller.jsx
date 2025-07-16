@@ -4,18 +4,31 @@ import Title from './Title';
 import ProductsItem from './ProductsItem';
 
 const BestSeller = () => {
-  const { products } = useContext(ShopContext);
-  const [bestSeller, setBestSeller] = useState([]);
+  const { products } = useContext(ShopContext); // ✅ correct use
+  const [bestSeller, setBestseller] = useState([]);
 
  useEffect(() => {
-  console.log("ALL PRODUCTS:", products);
-  const bestProduct = products.filter((item) => {
-    console.log("Item.bestSeller:", item.bestseller); // 👈 check this
-    return item.bestseller;
-  });
-  console.log("Filtered best sellers:", bestProduct);
-  setBestSeller(bestProduct.slice(0, 5));
+  console.log("ALL PRODUCTS from context:", products);
+
+  if (Array.isArray(products)) {
+    products.forEach((item, i) => {
+      console.log(`Product ${i + 1}:`, item);
+      console.log("item.bestSeller:", item.bestSeller);
+      console.log("item.bestseller:", item.bestseller);
+    });
+
+    // ✅ Yeh line yahin likhni hai
+    const bestProduct = products.filter(item =>
+      item.bestSeller === "true" || item.bestseller === "true" 
+    );
+
+    console.log("Filtered best sellers:", bestProduct);
+    setBestseller(bestProduct.slice(0, 5));
+  }
 }, [products]);
+
+
+
 
 
   return (
@@ -27,22 +40,18 @@ const BestSeller = () => {
         </p>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 gap-y-4">
-        {bestSeller.map((item, index) => {
-          console.log("image:", item.image);
-          return (
-            <ProductsItem
-              key={index}
-              id={item._id}
-              name={item.name}
-              image={item.image}
-              price={item.price}
-            />
-          );
-        })}
+        {bestSeller.map((item, index) => (
+          <ProductsItem
+            key={index}
+            id={item._id}
+            name={item.name}
+            image={item.image}
+            price={item.price}
+          />
+        ))}
       </div>
-
     </div>
   );
-}
+};
 
 export default BestSeller;

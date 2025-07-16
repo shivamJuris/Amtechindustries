@@ -1,81 +1,73 @@
 import { v2 as cloudinary } from "cloudinary";
 import productModel from "../Models/productModel.js";
 
-// ===========================
-// Add Product
-// ===========================
+
+
 const addProduct = async (req, res) => {
   try {
     const {
       name,
       description,
-      size,
-      bestseller,
+      price,
       category,
-      subcategory,
-      price
+      subCategory,
+      sizes,
+      bestSeller
     } = req.body;
 
     console.log("BODY:", req.body);
     console.log("FILES:", req.files);
 
-    // Handle images
-    const image1 = req.files?.image1?.[0] || null;
-    const image2 = req.files?.image2?.[0] || null;
-    const image3 = req.files?.image3?.[0] || null;
-    const image4 = req.files?.image4?.[0] || null;
-
-    const images = [image1, image2, image3, image4].filter(item => item !== null);
+    // Handle image files
+    const images = ['image1', 'image2', 'image3', 'image4']
+      .map((key) => req.files?.[key]?.[0])
+      .filter(Boolean);
 
     // Upload images to Cloudinary
     let imagesUrl = [];
-
     try {
       imagesUrl = await Promise.all(
-        images.map(async (item) => {
-          const result = await cloudinary.uploader.upload(item.path, {
+        images.map(async (file) => {
+          const result = await cloudinary.uploader.upload(file.path, {
             resource_type: "image",
           });
           return result.secure_url;
         })
       );
     } catch (uploadErr) {
-      console.error("Cloudinary Upload Error:", uploadErr.message);
+      console.error("Cloudinary Upload Error:", uploadErr);
       return res.status(500).json({ success: false, msg: "Image upload failed" });
     }
 
     // Parse sizes safely
     let parsedSizes;
     try {
-      parsedSizes = JSON.parse(size.replace(/'/g, '"'));
+      parsedSizes = JSON.parse(sizes);
     } catch (e) {
       return res.status(400).json({ success: false, msg: "Invalid sizes format" });
     }
 
-    // Prepare product data
-   if (!price || isNaN(Number(price))) {
-  return res.status(400).json({ success: false, msg: "Price must be a valid number" });
-}
+    // Validate price
+    if (!price || isNaN(Number(price))) {
+      return res.status(400).json({ success: false, msg: "Invalid price" });
+    }
 
-const productData = {
-  name,
-  description,
-  category,
-  price: parseFloat(price),
-  subCategory: subcategory, // 👈 matches schema
-  bestseller: bestseller === "true",
-  size: parsedSizes,
-  image: imagesUrl,
-  date: Date.now()
-};
+    const productData = {
+      name,
+      description,
+      price: parseFloat(price),
+      category: Array.isArray(category) ? category[0] : category,  // handle category as array or string
+      subCategory,
+      size: parsedSizes,
+      bestSeller: bestSeller === "true" || bestSeller === true,
+      image: imagesUrl,
+      date: Date.now(),
+    };
 
+    const newProduct = new productModel(productData);
+    await newProduct.save();
 
-    // Save to DB
-    const Product = new productModel(productData);
-    await Product.save();
-
-    res.json({ success: true, message: "Uploaded successfully", product: Product });
-
+    res.json({ success: true, message: "Product uploaded successfully", product: newProduct });
   } catch (error) {
     console.error("Upload Error:", error.message);
     res.status(500).json({ success: false, msg: error.message });

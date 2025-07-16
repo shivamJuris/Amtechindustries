@@ -76,7 +76,7 @@ const sortProducts = () => {
 
   useEffect(() => {
     ApplyFilter();
-  }, [category, subCategory, search, showSearch]);
+  }, [category, subCategory, search, showSearch, products]);
 
   useEffect(() => {
     console.log("Sample product:", products[0]);
