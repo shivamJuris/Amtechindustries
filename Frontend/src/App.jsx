@@ -21,7 +21,7 @@ function App() {
     <ToastContainer/>
       <Navbar />
       <Searchbar/>
-      <div className="px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]">
+      <div className="px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw] bg-white text-gray-900 dark:bg-gray-900 dark:text-white">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/collection" element={<Collection />} />
