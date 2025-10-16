@@ -5,12 +5,12 @@ import Title from "../components/Title";
 import ProductsItem from "../components/ProductsItem";
 
 const Collection = () => {
-  const { products ,search, showSearch} = useContext(ShopContext);
+  const { products, search, showSearch } = useContext(ShopContext);
   const [shopFilter, setShopFilter] = useState(false);
   const [filterProducts, setFilterProducts] = useState([]);
   const [category, setCategory] = useState([]);
   const [subCategory, setSubCategory] = useState([]);
-  const [sortType, setSortType]= useState('relevent')
+  const [sortType, setSortType] = useState("relevant");
 
   const toggleCategory = (e) => {
     const value = e.target.value;
@@ -30,61 +30,53 @@ const Collection = () => {
     }
   };
 
-  const ApplyFilter = () => {
-    let productsCopy = products.slice();
+  const applyFilter = () => {
+    let productsCopy = [...products];
 
-    if(showSearch && search){
-      productsCopy = productsCopy.filter(item =>item.name.toLowerCase().includes(search.toLowerCase()))
-    }
-
-    if (category.length > 0) {
+    if (showSearch && search) {
       productsCopy = productsCopy.filter((item) =>
-        category.includes(item.category)
+        item.name.toLowerCase().includes(search.toLowerCase())
       );
     }
 
+    if (category.length > 0) {
+      productsCopy = productsCopy.filter((item) => category.includes(item.category));
+    }
+
     if (subCategory.length > 0) {
-      productsCopy = productsCopy.filter(
-        (item) => subCategory.includes(item.subCategory) // ✅ Capital C
+      productsCopy = productsCopy.filter((item) =>
+        subCategory.includes(item.subCategory)
       );
     }
 
     setFilterProducts(productsCopy);
   };
 
-const sortProducts = () => {
-  let fpCopy = [...filterProducts]; // clone array
+  const sortProducts = () => {
+    let fpCopy = [...filterProducts];
 
-  switch (sortType) {
-    case "low-high":
-      fpCopy.sort((a, b) => a.price - b.price);
-      break;
+    switch (sortType) {
+      case "low-high":
+        fpCopy.sort((a, b) => a.price - b.price);
+        break;
+      case "high-low":
+        fpCopy.sort((a, b) => b.price - a.price);
+        break;
+      default:
+        applyFilter();
+        return;
+    }
 
-    case "high-low":
-      fpCopy.sort((a, b) => b.price - a.price);
-      break;
-
-    default:
-      ApplyFilter(); // reapply filter for "relevant"
-      return;
-  }
-
-  // set sorted copy to trigger re-render
-  setFilterProducts([...fpCopy]); // ✅ spread again to create new reference
-};
-
+    setFilterProducts([...fpCopy]);
+  };
 
   useEffect(() => {
-    ApplyFilter();
+    applyFilter();
   }, [category, subCategory, search, showSearch, products]);
 
   useEffect(() => {
-    console.log("Sample product:", products[0]);
-  }, [products]);
-
-  useEffect(()=>{
     sortProducts();
-  },[sortType])
+  }, [sortType, filterProducts]);
 
   return (
     <div className="flex flex-col sm:flex-row gap-1 sm:gap-10 pt-10 border-t">
@@ -111,30 +103,15 @@ const sortProducts = () => {
           <p className="mb-3 text-sm font-medium">CATEGORIES</p>
           <div className="flex flex-col gap-2 text-sm font-light text-gray-700">
             <label className="flex gap-2">
-              <input
-                type="checkbox"
-                className="w-3"
-                value="Men"
-                onChange={toggleCategory}
-              />
+              <input type="checkbox" className="w-3" value="Men" onChange={toggleCategory} />
               MEN
             </label>
             <label className="flex gap-2">
-              <input
-                type="checkbox"
-                className="w-3"
-                value="Women"
-                onChange={toggleCategory}
-              />
+              <input type="checkbox" className="w-3" value="Women" onChange={toggleCategory} />
               WOMEN
             </label>
             <label className="flex gap-2">
-              <input
-                type="checkbox"
-                className="w-3"
-                value="Kids"
-                onChange={toggleCategory}
-              />
+              <input type="checkbox" className="w-3" value="Kids" onChange={toggleCategory} />
               KIDS
             </label>
           </div>
@@ -183,7 +160,10 @@ const sortProducts = () => {
       <div className="flex-1">
         <div className="flex justify-between text-base sm:text-2xl mb-4">
           <Title text1={"ALL"} text2={"COLLECTION"} />
-          <select onChange={(e)=>setSortType(e.target.value)} className="border-2 border-gray-300 text-sm px-2">
+          <select
+            onChange={(e) => setSortType(e.target.value)}
+            className="border-2 border-gray-300 text-sm px-2"
+          >
             <option value="relevant">Sort by: Relevant</option>
             <option value="low-high">Sort by: Low to High</option>
             <option value="high-low">Sort by: High to Low</option>

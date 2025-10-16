@@ -27,6 +27,8 @@ const Navbar = () => {
       <ul className="hidden sm:flex gap-5 text-sm">
         <NavLink to="/" className="flex flex-col items-center gap-1">
           <p>HOME</p>
+
+          <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
         </NavLink>
         <NavLink to="/collection" className="flex flex-col items-center gap-1">
           <p>COLLECTION</p>
